@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="{{url_for('static',filename='style.css')}}" rel="stylesheet" />
+    <title>Healio</title>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const logo = document.querySelector("[logo]");
+        logo.innerHTML = `<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 277.333H277.333V416h-42.666V277.333H96v-42.666h138.667V96h42.666v138.667H416v42.666z"></path></svg>`;
+      });
+    </script>
+  </head>
+  <body class="place-content-center grid bg-black min-h-dvh text-gray-300">
+    <div class="text-center">
+      <div class="flex justify-center items-start mx-auto">
+        <h1 class="font-bold text-4xl text-white sm:text-5xl tracking-tight">Welcome to Healio</h1>
+        <div logo class="scale-[2]"></div>
+      </div>
+      <p class="mt-6 text-gray-200 text-lg leading-8">
+        Healio is an AI chatbot that offers potential diagnoses based on<br />
+        user-described symptoms, providing initial healthcare guidance.
+      </p>
+      <div class="flex justify-center items-center mt-10">
+        <a class="bg-white px-4 py-2 rounded-md font-medium text-black" href="/main">Get Started</a>
+      </div>
+    </div>
+  </body>
+</html>

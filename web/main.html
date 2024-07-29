@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="{{url_for('static',filename='style.css')}}" rel="stylesheet" />
+    <title>Healio</title>
+    <script>
+      const icons = {
+        logo: '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 277.333H277.333V416h-42.666V277.333H96v-42.666h138.667V96h42.666v138.667H416v42.666z"></path></svg>',
+        user: '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg>',
+        spinner:
+          '<svg class="animate-spin" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"></path></svg>',
+      };
+      function formatStr(str) {
+        return str
+          .split(/[\s_]+/)
+          .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+          .join(" ");
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const logos = document.querySelectorAll("[logo]");
+        logos.forEach((l) => (l.innerHTML = icons.logo));
+        const container = document.querySelector("[container]");
+
+        window.main = main;
+
+        async function main(input = "") {
+          if (input != "") {
+            const toBeUpdated = document.querySelector("[to-be-updated-two]");
+            toBeUpdated.removeAttribute("to-be-updated-two");
+            toBeUpdated.innerHTML = `
+                    <p class="bg-gray-600 px-4 py-2 rounded">${input == "yes" ? "Yes, I do." : "No, I don't."}</p>
+                    <div class="box-content rounded-full w-7 h-7">${icons.user}</div>
+                `;
+          }
+
+          const req = await fetch("/api", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(input),
+          });
+          const data = await req.json();
+
+          container.innerHTML += `
+              <div class="flex items-center gap-3">
+                  <div logo class="box-content rounded-full w-7 h-7">${icons.logo}</div>
+                  <div class="bg-gray-600 px-4 py-2 rounded" to-be-updated><div class="w-6 h-6">${icons.spinner}</div></div>
+              </div>
+            `;
+
+          if (data.type == "question") {
+            setTimeout(() => {
+              const toBeUpdated = document.querySelector("[to-be-updated]");
+              toBeUpdated.removeAttribute("to-be-updated");
+              toBeUpdated.innerHTML = `Do you have this symptom: <b>${formatStr(data.data)}</b>?`;
+              container.innerHTML += `
+                <div class="flex justify-end items-center gap-3" to-be-updated-two>
+                    <button onclick="main('yes')" class="bg-blue-500 px-6 py-2 rounded text-white hover:scale-110 duration-100">Yes</button>
+                    <button onclick="main('no')" class="bg-red-500 px-6 py-2 rounded text-white hover:scale-110 duration-100">No</button>
+                    <div class="box-content rounded-full w-7 h-7">${icons.user}</div>
+                </div>
+              `;
+            }, 1750);
+          } else {
+            setTimeout(() => {
+              const toBeUpdated = document.querySelector("[to-be-updated]");
+              toBeUpdated.removeAttribute("to-be-updated");
+              toBeUpdated.innerHTML = `Based on the symptoms you provided, you may have <b>${data.disease_name}</b>.`;
+              container.innerHTML += `
+                <div class="flex items-center gap-3">
+                    <div logo class="box-content rounded-full w-7 h-7">${icons.logo}</div>
+                    <p class="bg-gray-600 px-4 py-2 rounded">
+                        Recorded Symptoms: ${data.recorded_symptoms.map(formatStr).join(", ")}<br />
+                    </p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div logo class="box-content rounded-full w-7 h-7">${icons.logo}</div>
+                    <p class="bg-gray-600 px-4 py-2 rounded">
+                        Other Symptoms may include: ${data.other_symptoms.slice(0, 5).map(formatStr).join(", ")}...<br />
+                    </p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div logo class="box-content rounded-full w-7 h-7">${icons.logo}</div>
+                    <p class="bg-gray-600 px-4 py-2 rounded">
+                        ${data.consult_msg}
+                    </p>
+                </div>
+                <div class="flex justify-center pt-4">
+                  <button class="bg-blue-500 px-4 py-2 rounded text-white hover:scale-110 duration-100" onclick="location.reload()">Restart</button> 
+                </div>
+              `;
+            }, 2400);
+          }
+        }
+
+        main();
+      });
+    </script>
+  </head>
+  <body class="flex justify-center bg-[#121212] min-h-dvh text-gray-200">
+    <div class="space-y-3 py-12 w-[1000px] max-w-[90vw]" container>
+      <div class="flex pb-2 font-medium text-2xl">
+        <h1>HealioAI</h1>
+        <div logo class="-translate-x-2 -translate-y-3"></div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div logo class="box-content rounded-full w-7 h-7"></div>
+        <p class="bg-gray-600 px-4 py-2 rounded">
+          Hello there! My name is Healio. I will answer your queries about your health-related problem.
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div logo class="box-content rounded-full w-7 h-7"></div>
+        <p class="bg-gray-600 px-4 py-2 rounded">Please try to answer all the questions as accurately as possible.</p>
+      </div>
+    </div>
+  </body>
+</html>
